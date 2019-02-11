@@ -163,7 +163,7 @@ decimal
 variable _as-start
 
 : as-start here _as-start ! ;
-: as-end _as-start @ here over - output @ write-file throw ;
+: as-end _as-start @ here 4 - over - output @ write-file throw ;
 
 as-start
 r0 r0 r0 add,
