@@ -1,5 +1,5 @@
 variable output
-" out.bin" w/o open-file throw output !
+s" out.bin" w/o open-file throw output !
 
 : cond create 28 lshift ,
 	does> @ -1 allot here @ C@ or , ;
@@ -24,9 +24,7 @@ D cond le,
 E cond al,
 ( F is reserved for unconditional instructions )
 
-: tag create 28 lshift dup , create ,
-	does> 
-
+hex
 0 constant r0
 1 constant r1
 2 constant r2
@@ -44,6 +42,7 @@ D constant sp
 E constant lr
 F constant pc
 
+decimal
 : imm-shift create 7 lshift ,
 	does> @ swap 5 lshift or or ; ( or into the rm register )
 
@@ -69,6 +68,7 @@ F constant pc
 
 : s -1 allot here @ 1 20 lshift and , ;
 
+hex
 0 data-ins-r and,
 1 data-ins-r xor,
 2 data-ins-r sub,
@@ -91,9 +91,11 @@ F data-ins-r mvn,
 : build-data-ins-i
 	swap data-ins-rd swap data-ins-rn swap data-ins-i12 ;
 
+decimal
 : data-ins-i create 21 lshift 1 25 lshift and ,
 	does> @ build-data-ins-i , ;
 
+hex
 0 data-ins-i andi,
 1 data-ins-i xori,
 2 data-ins-i subi,
@@ -114,9 +116,10 @@ F data-ins-i mvni,
 ( todo mul mla )
 
 
-( Ralative distance must be pre-calculated )
-: b, 5 25 lshift or , ;
-: bl, B 24 lshift or , ; 
+decimal
+( Relative address is calculated )
+: b, 5 25 lshift swap here 8 + - or , ;
+: bl, 11 24 lshift swap here 8 + - or , ; 
 
 : ld-st-flag create 1 swap lshift ,
 	does> @ or ;
@@ -138,16 +141,16 @@ F data-ins-i mvni,
 
 : swp, 1 24 lshift 9 4 lshift or swap data-ins-rd swap data-ins-rn swap data-ins-rm , ;
 
-: swi, F 24 lshift or ;
+: swi, 15 24 lshift or ;
 
 : cdp-in 5 lshift or ;
-: cdp-rm data-ins-rm;
+: cdp-rm data-ins-rm ;
 : cdp-rn data-ins-rn ;
 : cdp-rd data-ins-rd ;
 : cdp-no 8 lshift or ;
 : cdp-op 20 lshift or ;
 
-: cdp, E 24 lshift swap cdp-no swap cdp-op swap cdp-rd swap cdp-rn swap cdp-rm swap cdp-in , ;
+: cdp, 14 24 lshift swap cdp-no swap cdp-op swap cdp-rd swap cdp-rn swap cdp-rm swap cdp-in , ;
 
 : ldstc-imm-8 or ;
 : stc 3 26 lshift swap cdp-no swap cdp-rd swap ldstc-imm-8 , ;
@@ -155,4 +158,15 @@ F data-ins-i mvni,
 
 : mrcr-cop 21 lshift or ;
 
-: mrc 7 25 lshift swap cdp-no swap mrcr-cop swap cpd-rd swap cpd-rn swap cpd-rm swap cpd-in , ;
+: mrc 7 25 lshift swap cdp-no swap mrcr-cop swap cdp-rd swap cdp-rn swap cdp-rm swap cdp-in , ;
+
+variable _as-start
+
+: as-start here _as-start ! ;
+: as-end _as-start @ here over - output @ write-file throw ;
+
+as-start
+r0 r0 r0 add,
+as-end
+output @ close-file
+
