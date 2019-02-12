@@ -1,8 +1,11 @@
 variable output
 s" out.bin" w/o open-file throw output !
 
-: cond create 28 lshift ,
-	does> @ -1 allot here @ C@ or , ;
+hex
+F 1C lshift invert constant cond-mask
+
+: cond create 1C lshift ,
+	does> @ here 4 - @ cond-mask and or here 4 - ! ;
 
 hex
 0 cond eq,
@@ -66,7 +69,7 @@ decimal
 : data-ins-r create 21 lshift ,
 	does> @ build-data-ins-r , ;
 
-: s -1 allot here @ 1 20 lshift and , ;
+: s -4 allot here @ 1 20 lshift and , ;
 
 hex
 0 data-ins-r and,
@@ -166,7 +169,10 @@ variable _as-start
 : as-end _as-start @ here 4 - over - output @ write-file throw ;
 
 as-start
-r0 r0 r0 add,
+here .
+0 , 
+1 cell .
+here .
 as-end
 output @ close-file
 
