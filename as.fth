@@ -2,6 +2,12 @@ variable output
 s" out.bin" w/o open-file throw output !
 
 hex
+: 8bmask FF and ;
+: get8b 3 lshift rshift 8bmask ;
+
+: ins, dup 0 get8b c, dup 1 get8b c, dup 2 get8b c, 3 get8b c, ;
+
+hex
 F 1C lshift invert constant cond-mask
 
 : cond create 1C lshift ,
@@ -67,8 +73,9 @@ decimal
 	swap data-ins-rd swap data-ins-rn swap data-ins-rm ;
 
 : data-ins-r create 21 lshift ,
-	does> @ build-data-ins-r , ;
+	does> @ build-data-ins-r ins, ;
 
+( fixme )
 : s -4 allot here @ 1 20 lshift and , ;
 
 hex
@@ -96,7 +103,7 @@ F data-ins-r mvn,
 
 decimal
 : data-ins-i create 21 lshift 1 25 lshift and ,
-	does> @ build-data-ins-i , ;
+	does> @ build-data-ins-i ins, ;
 
 hex
 0 data-ins-i andi,
@@ -166,12 +173,11 @@ decimal
 variable _as-start
 
 : as-start here _as-start ! ;
-: as-end _as-start @ here 4 - over - output @ write-file throw ;
+: as-end _as-start @ here over - output @ write-file throw ;
 
 as-start
 here .
-0 , 
-1 cell .
+r0 r0 r0 add,
 here .
 as-end
 output @ close-file
