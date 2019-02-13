@@ -2,16 +2,12 @@ variable output
 s" out.bin" w/o open-file throw output !
 
 hex
-: 8bmask FF and ;
-: get8b 3 lshift rshift 8bmask ;
+F0 invert constant cond-mask
+: cond-mask F and ;
 
-: ins, dup 0 get8b c, dup 1 get8b c, dup 2 get8b c, 3 get8b c, ;
-
-hex
-F 1C lshift invert constant cond-mask
-
-: cond create 1C lshift ,
-	does> @ here 4 - @ cond-mask and or here 4 - ! ;
+decimal
+: cond create 4 lshift ,
+	does> @ here 1 - c@ cond-mask or here 1 - c! ;
 
 hex
 0 cond eq,
@@ -32,6 +28,13 @@ C cond gt,
 D cond le,
 E cond al,
 ( F is reserved for unconditional instructions )
+
+hex
+: 8bmask FF and ;
+: get8b 3 lshift rshift 8bmask ;
+
+: ins, dup 0 get8b c, dup 1 get8b c, dup 2 get8b c, 3 get8b c, al, ;
+
 
 hex
 0 constant r0
@@ -75,8 +78,7 @@ decimal
 : data-ins-r create 21 lshift ,
 	does> @ build-data-ins-r ins, ;
 
-( fixme )
-: s -4 allot here @ 1 20 lshift and , ;
+: s here 2 - dup c@ 16 or swap c! ;
 
 hex
 0 data-ins-r and,
@@ -128,8 +130,8 @@ F data-ins-i mvni,
 
 decimal
 ( Relative address is calculated )
-: b, 5 25 lshift swap here 8 + - or , ;
-: bl, 11 24 lshift swap here 8 + - or , ; 
+: b, 5 25 lshift swap here 8 + - or ins, ;
+: bl, 11 24 lshift swap here 8 + - or ins, ; 
 
 : ld-st-flag create 1 swap lshift ,
 	does> @ or ;
@@ -140,18 +142,18 @@ decimal
 22 ld-st-flag byte
 21 ld-st-flag wb
 
-: ldr, 1 26 lshift swap data-ins-rd swap data-ins-rn swap data-ins-i12 , ;
-: str, 65 20 lshift swap data-ins-rd swap data-ins-rn swap data-ins-i12 , ;
+: ldr, 1 26 lshift swap data-ins-rd swap data-ins-rn swap data-ins-i12 ins, ;
+: str, 65 20 lshift swap data-ins-rd swap data-ins-rn swap data-ins-i12 ins, ;
 
 ( todo ldrh , strh )
 
 : ldstm-bits ;
-: stm, 1 27 lshift swap data-ins-rn swap ldstm-bits ;
-: ldm, 129 27 lshift swap data-ins-rn swap ldstm-bits ;
+: stm, 1 27 lshift swap data-ins-rn swap ldstm-bits ins, ;
+: ldm, 129 27 lshift swap data-ins-rn swap ldstm-bits ins, ;
 
-: swp, 1 24 lshift 9 4 lshift or swap data-ins-rd swap data-ins-rn swap data-ins-rm , ;
+: swp, 1 24 lshift 9 4 lshift or swap data-ins-rd swap data-ins-rn swap data-ins-rm ins, ;
 
-: swi, 15 24 lshift or ;
+: swi, 15 24 lshift or ins, ;
 
 : cdp-in 5 lshift or ;
 : cdp-rm data-ins-rm ;
@@ -160,15 +162,15 @@ decimal
 : cdp-no 8 lshift or ;
 : cdp-op 20 lshift or ;
 
-: cdp, 14 24 lshift swap cdp-no swap cdp-op swap cdp-rd swap cdp-rn swap cdp-rm swap cdp-in , ;
+: cdp, 14 24 lshift swap cdp-no swap cdp-op swap cdp-rd swap cdp-rn swap cdp-rm swap cdp-in ins, ;
 
 : ldstc-imm-8 or ;
-: stc 3 26 lshift swap cdp-no swap cdp-rd swap ldstc-imm-8 , ;
-: ldc 3 26 lshift 1 20 lshift or swap cdp-no swap cdp-rd swap ldstc-imm-8 , ;
+: stc 3 26 lshift swap cdp-no swap cdp-rd swap ldstc-imm-8 ins, ;
+: ldc 3 26 lshift 1 20 lshift or swap cdp-no swap cdp-rd swap ldstc-imm-8 ins, ;
 
 : mrcr-cop 21 lshift or ;
 
-: mrc 7 25 lshift swap cdp-no swap mrcr-cop swap cdp-rd swap cdp-rn swap cdp-rm swap cdp-in , ;
+: mrc 7 25 lshift swap cdp-no swap mrcr-cop swap cdp-rd swap cdp-rn swap cdp-rm swap cdp-in ins, ;
 
 variable _as-start
 
@@ -177,7 +179,7 @@ variable _as-start
 
 as-start
 here .
-r0 r0 r0 add,
+r0 r0 r0 add, s
 here .
 as-end
 output @ close-file
