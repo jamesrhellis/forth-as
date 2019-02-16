@@ -97,7 +97,7 @@ D data-ins-r mov,
 E data-ins-r bic,
 F data-ins-r mvn,
 
-: data-ins-i12 or ;
+: data-ins-i12 3FF and or ;
 
 : build-data-ins-i
 	swap data-ins-rd swap data-ins-rn swap data-ins-i12 ;
@@ -139,14 +139,17 @@ decimal
 : ld-st-flag create 1 swap lshift ,
 	does> @ or ;
 
-25 ld-st-flag imm
+( 25 ld-st-flag imm )
 24 ld-st-flag pre
 23 ld-st-flag up
 22 ld-st-flag byte
 21 ld-st-flag wb
 
-: ldr, 1 26 lshift swap data-ins-rd swap data-ins-rn swap data-ins-i12 ins, ;
-: str, 65 20 lshift swap data-ins-rd swap data-ins-rn swap data-ins-i12 ins, ;
+: stri, 1 26 lshift swap data-ins-rd swap data-ins-rn swap data-ins-i12 ins, ;
+: ldri, 65 20 lshift swap data-ins-rd swap data-ins-rn swap data-ins-i12 ins, ;
+
+: str, 3 25 lshift swap data-ins-rd swap data-ins-rn swap data-ins-rm ins, ;
+: ldr, 97 20 lshift swap data-ins-rd swap data-ins-rn swap data-ins-rm ins, ;
 
 ( todo ldrh , strh )
 
@@ -183,6 +186,7 @@ variable _as-start
 as-start
 r0 r0 r0 add, s
 here 2 ins - b,
+r1 up pre wb r2 r3 ldr,
 as-end
 output @ close-file
 
