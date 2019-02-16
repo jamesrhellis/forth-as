@@ -35,7 +35,6 @@ hex
 
 : ins, dup 0 get8b c, dup 1 get8b c, dup 2 get8b c, 3 get8b c, al, ;
 
-
 hex
 0 constant r0
 1 constant r1
@@ -129,9 +128,13 @@ F data-ins-i mvni,
 
 
 decimal
+
+: ins  4 * ;
+: b-imm-mask 255 24 lshift invert and ;
+: bimm24 2 rshift b-imm-mask or ;
 ( Relative address is calculated )
-: b, 5 25 lshift swap here 8 + - or ins, ;
-: bl, 11 24 lshift swap here 8 + - or ins, ; 
+: b, 5 25 lshift swap here 8 + - bimm24 ins, ;
+: bl, 11 24 lshift swap here 8 + - bimm24 ins, ; 
 
 : ld-st-flag create 1 swap lshift ,
 	does> @ or ;
@@ -178,9 +181,8 @@ variable _as-start
 : as-end _as-start @ here over - output @ write-file throw ;
 
 as-start
-here .
 r0 r0 r0 add, s
-here .
+here 2 ins - b,
 as-end
 output @ close-file
 
