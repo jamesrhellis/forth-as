@@ -171,12 +171,13 @@ decimal
 : cdp, 14 24 lshift swap cdp-no swap cdp-op swap cdp-rd swap cdp-rn swap cdp-rm swap cdp-in ins, ;
 
 : ldstc-imm-8 or ;
-: stc 3 26 lshift swap cdp-no swap cdp-rd swap ldstc-imm-8 ins, ;
-: ldc 3 26 lshift 1 20 lshift or swap cdp-no swap cdp-rd swap ldstc-imm-8 ins, ;
+: stc, 3 26 lshift swap cdp-no swap cdp-rd swap ldstc-imm-8 ins, ;
+: ldc, 3 26 lshift 1 20 lshift or swap cdp-no swap cdp-rd swap ldstc-imm-8 ins, ;
 
 : mrcr-cop 21 lshift or ;
 
-: mrc 7 25 lshift swap cdp-no swap mrcr-cop swap cdp-rd swap cdp-rn swap cdp-rm swap cdp-in ins, ;
+: mcr, 7 25 lshift 16 or swap cdp-no swap mrcr-cop swap cdp-rd swap cdp-rn swap cdp-rm swap cdp-in ins, ;
+: mrc, 7 25 lshift 1 20 lshift or 16 or swap cdp-no swap mrcr-cop swap cdp-rd swap cdp-rn swap cdp-rm swap cdp-in ins, ;
 
 variable _as-start
 
@@ -185,8 +186,12 @@ variable _as-start
 
 as-start
 r0 r0 r0 add, s
+r1 r2 r3 orr,
 here 2 ins - b,
 r1 up pre wb r2 r3 ldr,
+1 r2 r3 r4 5 6 cdp,
+12 swi,
+1 r2 r3 r4 5 6 mrc,
 as-end
 output @ close-file
 
