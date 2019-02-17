@@ -33,7 +33,8 @@ hex
 : 8bmask FF and ;
 : get8b 3 lshift rshift 8bmask ;
 
-: ins, dup 0 get8b c, dup 1 get8b c, dup 2 get8b c, 3 get8b c, al, ;
+: num, dup 0 get8b c, dup 1 get8b c, dup 2 get8b c, 3 get8b c, ;
+: ins, num, al, ;
 
 hex
 0 constant r0
@@ -184,22 +185,22 @@ variable _as-start
 : as-start here _as-start ! ;
 : as-end _as-start @ here over - output @ write-file throw ;
 
+variable inter-vec
+: reserve-vec here inter-vec ! 8 ins allot ;
+: reset-b here inter-vec @ .s swap - dup allot .s swap b, -1 ins swap - allot ;
+
 as-start
 ( instruction vector table )
-here 8 ins + b,
-here b,
-here b,
-here b,
-here b,
-here b,
-here b,
-here b,
+reserve-vec
 ( start of code )
 
+create main
 5 r0 r0 r1 0 15 mrc,
 3 r1 r1 andi,
 0 r1 r1 cmpi,
 here b, ne,
+
+main reset-b
 
 ( 
 r0 r0 r0 add, s
