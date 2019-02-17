@@ -103,7 +103,7 @@ F data-ins-r mvn,
 	swap data-ins-rd swap data-ins-rn swap data-ins-i12 ;
 
 decimal
-: data-ins-i create 21 lshift 1 25 lshift and ,
+: data-ins-i create 21 lshift 1 25 lshift or ,
 	does> @ build-data-ins-i ins, ;
 
 hex
@@ -185,6 +185,23 @@ variable _as-start
 : as-end _as-start @ here over - output @ write-file throw ;
 
 as-start
+( instruction vector table )
+here 8 ins + b,
+here b,
+here b,
+here b,
+here b,
+here b,
+here b,
+here b,
+( start of code )
+
+5 r0 r0 r1 0 15 mrc,
+3 r1 r1 andi,
+0 r1 r1 cmpi,
+here b, ne,
+
+( 
 r0 r0 r0 add, s
 r1 r2 r3 orr,
 here 2 ins - b,
@@ -194,6 +211,7 @@ r1 up pre wb r2 r3 ldr,
 1 r2 r3 r4 5 6 mrc,
 1 r2 r3 4 stc,
 r1 r2 r3 swp,
+)
 as-end
 output @ close-file
 
