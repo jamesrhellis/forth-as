@@ -171,8 +171,8 @@ decimal
 : cdp, 14 24 lshift swap cdp-no swap cdp-op swap cdp-rd swap cdp-rn swap cdp-rm swap cdp-in ins, ;
 
 : ldstc-imm-8 or ;
-: stc, 3 26 lshift swap cdp-no swap cdp-rd swap ldstc-imm-8 ins, ;
-: ldc, 3 26 lshift 1 20 lshift or swap cdp-no swap cdp-rd swap ldstc-imm-8 ins, ;
+: stc, 3 26 lshift swap cdp-no swap cdp-rd swap data-ins-rn swap ldstc-imm-8 ins, ;
+: ldc, 3 26 lshift 1 20 lshift or swap cdp-no swap cdp-rd swap data-ins-rn swap ldstc-imm-8 ins, ;
 
 : mrcr-cop 21 lshift or ;
 
@@ -192,6 +192,7 @@ r1 up pre wb r2 r3 ldr,
 1 r2 r3 r4 5 6 cdp,
 12 swi,
 1 r2 r3 r4 5 6 mrc,
+1 r2 r3 4 stc,
 as-end
 output @ close-file
 
