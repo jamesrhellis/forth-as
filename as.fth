@@ -157,7 +157,7 @@ decimal
 : stm, 1 27 lshift swap data-ins-rn swap ldstm-bits ins, ;
 : ldm, 129 27 lshift swap data-ins-rn swap ldstm-bits ins, ;
 
-: swp, 1 24 lshift 9 4 lshift or swap data-ins-rd swap data-ins-rn swap data-ins-rm ins, ;
+: swp, 1 24 lshift 9 4 lshift or swap data-ins-rd swap data-ins-rm swap data-ins-rn ins, ;
 
 : swi, 15 24 lshift or ins, ;
 
@@ -193,6 +193,7 @@ r1 up pre wb r2 r3 ldr,
 12 swi,
 1 r2 r3 r4 5 6 mrc,
 1 r2 r3 4 stc,
+r1 r2 r3 swp,
 as-end
 output @ close-file
 
