@@ -186,7 +186,8 @@ variable _as-start
 : as-end _as-start @ here over - output @ write-file throw ;
 
 variable inter-vec
-: reserve-vec here inter-vec ! 8 ins allot ;
+: blank-vec dup 0 = if exit then 1 - here b, recurse ;
+: reserve-vec here inter-vec ! 8 blank-vec ;
 : reset-b here inter-vec @ .s swap - dup allot .s swap b, -1 ins swap - allot ;
 
 as-start
@@ -200,8 +201,6 @@ create main
 0 r1 r1 cmpi,
 here b, ne,
 
-main reset-b
-
 ( 
 r0 r0 r0 add, s
 r1 r2 r3 orr,
@@ -213,6 +212,7 @@ r1 up pre wb r2 r3 ldr,
 1 r2 r3 4 stc,
 r1 r2 r3 swp,
 )
+main reset-b
 as-end
 output @ close-file
 
