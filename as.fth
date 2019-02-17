@@ -55,13 +55,24 @@ E constant lr
 F constant pc
 
 decimal
-: imm-shift create 7 lshift ,
-	does> @ swap 5 lshift or or ; ( or into the rm register )
+: irot 2 / 8 lshift or ; ( or into the rm register )
 
-0 imm-shift lsl
-1 imm-shift lsr
-2 imm-shift asr
-3 imm-shift ror
+: imm-shift create 5 lshift ,
+	does> @ swap 7 lshift or or ; ( or into the rm register )
+
+0 imm-shift ilsl
+1 imm-shift ilsr
+2 imm-shift iasr
+3 imm-shift iror
+: irrx 0 iror ;
+
+: reg-shift create 5 lshift 1 4 lshift or ,
+	does> @ swap 8 lshift or or ; ( or into the rm register )
+
+0 reg-shift lsl
+1 reg-shift lsr
+2 reg-shift asr
+3 reg-shift ror
 : rrx 0 ror ;
 
 : data-ins-rd
@@ -78,7 +89,7 @@ decimal
 : data-ins-r create 21 lshift ,
 	does> @ build-data-ins-r ins, ;
 
-: s here 2 - dup c@ 16 or swap c! ;
+: s, here 2 - dup c@ 16 or swap c! ;
 
 hex
 0 data-ins-r and,
@@ -98,7 +109,7 @@ D data-ins-r mov,
 E data-ins-r bic,
 F data-ins-r mvn,
 
-: data-ins-i12 3FF and or ;
+: data-ins-i12 FFF and or ;
 
 : build-data-ins-i
 	swap data-ins-rd swap data-ins-rn swap data-ins-i12 ;
@@ -146,8 +157,8 @@ decimal
 22 ld-st-flag byte
 21 ld-st-flag wb
 
-: stri, 1 26 lshift swap data-ins-rd swap data-ins-rn swap data-ins-i12 ins, ;
-: ldri, 65 20 lshift swap data-ins-rd swap data-ins-rn swap data-ins-i12 ins, ;
+: stri, 1 26 lshift swap data-ins-rd swap data-ins-rn swap data-ins-rm ins, ;
+: ldri, 65 20 lshift swap data-ins-rd swap data-ins-rn swap data-ins-rm ins, ;
 
 : str, 3 25 lshift swap data-ins-rd swap data-ins-rn swap data-ins-rm ins, ;
 : ldr, 97 20 lshift swap data-ins-rd swap data-ins-rn swap data-ins-rm ins, ;
@@ -188,12 +199,58 @@ variable _as-start
 variable inter-vec
 : blank-vec dup 0 = if exit then 1 - here b, recurse ;
 : reserve-vec here inter-vec ! 8 blank-vec ;
-: reset-b here inter-vec @ .s swap - dup allot .s swap b, -1 ins swap - allot ;
+: reset-b here inter-vec @ swap - dup allot swap b, -1 ins swap - allot ;
 
+hex
+3f200000 constant gpio-base
+3f200094 constant gppud
+3f200098 constant gppudclk
+3f201000 constant uart-base
+3f201000 constant uart-dr
+3f201004 constant uart-rsrecr
+3f201030 constant uart-cr
+
+decimal
 as-start
 ( instruction vector table )
 reserve-vec
 ( start of code )
+
+create delay
+	1 r0 r0 subi, s,
+	delay b, ne,
+	lr 0 pc mov,
+
+create immidiate
+	4 up lr r0 ldri,
+	lr 0 pc mov,
+: imm, immidiate bl, num, ;
+
+create uart-init
+	uart-cr imm,
+	0 0 r1 movi,
+	0 r1 r0 stri,
+
+	gppud imm,
+	0 r1 r0 stri,
+
+	150 0 r0 movi,
+	delay bl,
+
+	gppudclk imm,
+	r0 0 r2 mov,
+	3 18 .s irot 0 r1 movi,
+	0 r1 r0 stri,
+
+	150 0 r0 movi,
+	delay bl,
+
+	gppudclk imm,
+	0 0 r1 movi,
+	0 r1 r0 str,
+
+
+
 
 create main
 5 r0 r0 r1 0 15 mrc,
