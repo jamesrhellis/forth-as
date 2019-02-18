@@ -206,9 +206,15 @@ hex
 3f200094 constant gppud
 3f200098 constant gppudclk
 3f201000 constant uart-base
-3f201000 constant uart-dr
+101f1000 constant uart-dr
 3f201004 constant uart-rsrecr
+3f201018 constant uart-fr
+3f201024 constant uart-ibrd
+3f201028 constant uart-fbrd
+3f20102c constant uart-lcrh
 3f201030 constant uart-cr
+3f201038 constant uart-imsc
+3f201044 constant uart-icr
 
 decimal
 as-start
@@ -226,37 +232,91 @@ create immidiate
 	lr 0 pc mov,
 : imm, immidiate bl, num, ;
 
+( 
 create uart-init
+	lr 0 r11 mov,
 	uart-cr imm,
 	0 0 r1 movi,
-	0 r1 r0 stri,
+	0 r0 r1 stri,
 
 	gppud imm,
-	0 r1 r0 stri,
+	0 r0 r1 stri,
 
-	150 0 r0 movi,
+	300 0 r0 movi,
 	delay bl,
 
 	gppudclk imm,
 	r0 0 r2 mov,
-	3 18 .s irot 0 r1 movi,
-	0 r1 r0 stri,
+	3 18 irot 0 r1 movi,
+	0 r0 r1 stri,
 
-	150 0 r0 movi,
+	300 0 r0 movi,
 	delay bl,
 
-	gppudclk imm,
+	r2 0 r0 mov,
 	0 0 r1 movi,
-	0 r1 r0 str,
+	0 r0 r1 stri,
 
+	hex 7ff imm,
+	decimal
+	r0 0 r1 mov,
+	uart-icr imm,
+	0 r0 r1 stri,
 
+	uart-ibrd imm,
+	1 0 r1 movi,
+	0 r0 r1 stri,
 
+	uart-fbrd imm,
+	40 0 r1 movi,
+	0 r0 r1 stri,
+
+	uart-lcrh imm,
+	112 0 r1 movi,
+	0 r0 r1 stri,
+
+	uart-imsc imm,
+	127 30 irot 0 r1 movi,
+	2 0 r1 orri,
+	0 r0 r1 stri,
+
+	uart-cr imm,
+	3 24 irot 0 r1 movi,
+	1 r1 r1 orri,
+	0 r0 r1 stri,
+
+	r11 0 pc mov,
+)
+
+create uart-putc
+	lr 0 r11 mov,
+	r0 0 r1 mov,
+( 	uart-fr imm,
+	0 r0 r2 ldri,
+	32 r2 r2 orri, s,
+	here 2 ins - b, ne,
+)
+	uart-dr imm,
+	0 r0 r1 stri,
+	r11 0 pc mov,
 
 create main
-5 r0 r0 r1 0 15 mrc,
-3 r1 r1 andi,
-0 r1 r1 cmpi,
-here b, ne,
+( 
+	5 r0 r0 r1 0 15 mrc,
+	3 r1 r1 andi,
+	0 r1 r1 cmpi,
+	here b, ne,
+
+	uart-init bl,
+)
+	97 0 r0 movi,
+	uart-putc bl,
+	13 0 r0 movi,
+	uart-putc bl,
+	10 0 r0 movi,
+	uart-putc bl,
+
+	here b,
 
 ( 
 r0 r0 r0 add, s
