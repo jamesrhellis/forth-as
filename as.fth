@@ -1,5 +1,5 @@
 variable output
-s" out.bin" w/o open-file throw output !
+s" out.bin" w/o create-file throw output !
 
 hex
 F0 invert constant cond-mask
