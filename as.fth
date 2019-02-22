@@ -109,6 +109,7 @@ E data-ins-r bic,
 F data-ins-r mvn,
 
 : mov, 0 swap mov, ;
+: cmp, 0 cmp, s, ;
 
 : data-ins-i12 FFF and or ;
 
@@ -140,6 +141,7 @@ F data-ins-i mvni,
 ( todo mul mla )
 
 : movi, 0 swap movi, ;
+: cmpi, 0 cmpi, s, ;
 
 
 decimal
@@ -210,7 +212,8 @@ hex
 3f200094 constant gppud
 3f200098 constant gppudclk
 3f201000 constant uart-base
-101f1000 constant uart-dr
+3f201000 constant uart-dr
+( 101f1000 constant uart-dr )
 3f201004 constant uart-rsrecr
 3f201018 constant uart-fr
 3f201024 constant uart-ibrd
@@ -293,24 +296,24 @@ create uart-init
 create uart-putc
 	lr r11 mov,
 	r0 r1 mov,
-( 	uart-fr imm,
+
+ 	uart-fr imm,
 	0 r0 r2 ldri,
 	32 r2 r2 orri, s,
 	here 2 ins - b, ne,
-)
+
 	uart-dr imm,
 	r0 r1 set,
 	r11 pc mov,
 
 create main
-( 
 	5 r0 r0 r1 0 15 mrc,
 	3 r1 r1 andi,
-	0 r1 r1 cmpi,
+	0 r1 cmpi,
 	here b, ne,
 
 	uart-init bl,
-)
+
 	97 r0 movi,
 	uart-putc bl,
 	13 r0 movi,
