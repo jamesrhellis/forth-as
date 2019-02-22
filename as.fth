@@ -2,7 +2,6 @@ variable output
 s" out.bin" w/o create-file throw output !
 
 hex
-F0 invert constant cond-mask
 : cond-mask F and ;
 
 decimal
