@@ -164,7 +164,7 @@ decimal
 
 : stri, 1 26 lshift swap data-ins-rd swap data-ins-rn swap data-ins-rm ins, ;
 : ldri, 65 20 lshift swap data-ins-rd swap data-ins-rn swap data-ins-rm ins, ;
-: set, 0 -rot stri, ;
+: set, 0 up -rot stri, ;
 
 : str, 3 25 lshift swap data-ins-rd swap data-ins-rn swap data-ins-rm ins, ;
 : ldr, 97 20 lshift swap data-ins-rd swap data-ins-rn swap data-ins-rm ins, ;
@@ -248,7 +248,7 @@ create uart-init
 	gppud imm,
 	r0 r1 set,
 
-	255 r0 movi,
+	150 r0 movi,
 	delay bl,
 
 	gppudclk imm,
@@ -256,7 +256,7 @@ create uart-init
 	3 18 irot r1 movi,
 	r0 r1 set,
 
-	255 0 r0 movi,
+	150 r0 movi,
 	delay bl,
 
 	r2 r0 mov,
@@ -299,7 +299,7 @@ create uart-putc
 
  	uart-fr imm,
 	0 r0 r2 ldri,
-	32 r2 r2 orri, s,
+	32 r2 r2 andi, s,
 	here 2 ins - b, ne,
 
 	uart-dr imm,
