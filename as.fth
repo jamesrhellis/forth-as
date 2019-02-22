@@ -163,6 +163,7 @@ decimal
 
 : stri, 1 26 lshift swap data-ins-rd swap data-ins-rn swap data-ins-rm ins, ;
 : ldri, 65 20 lshift swap data-ins-rd swap data-ins-rn swap data-ins-rm ins, ;
+: set, 0 -rot stri, ;
 
 : str, 3 25 lshift swap data-ins-rd swap data-ins-rn swap data-ins-rm ins, ;
 : ldr, 97 20 lshift swap data-ins-rd swap data-ins-rn swap data-ins-rm ins, ;
@@ -236,61 +237,59 @@ create immidiate
 	lr pc mov,
 : imm, immidiate bl, num, ;
 
-(  
 create uart-init
 	lr r11 mov,
 	uart-cr imm,
 	0 r1 movi,
-	0 r0 r1 stri,
+	r0 r1 set,
 
 	gppud imm,
-	0 r0 r1 stri,
+	r0 r1 set,
 
-	300 r0 movi,
+	255 r0 movi,
 	delay bl,
 
 	gppudclk imm,
 	r0 r2 mov,
 	3 18 irot r1 movi,
-	0 r0 r1 stri,
+	r0 r1 set,
 
-	300 0 r0 movi,
+	255 0 r0 movi,
 	delay bl,
 
 	r2 r0 mov,
 	0 r1 movi,
-	0 r0 r1 stri,
+	r0 r1 set,
 
 	hex 7ff imm,
 	decimal
 	r0 r1 mov,
 	uart-icr imm,
-	0 r0 r1 stri,
+	r0 r1 set,
 
 	uart-ibrd imm,
 	1 r1 movi,
-	0 r0 r1 stri,
+	r0 r1 set,
 
 	uart-fbrd imm,
 	40 r1 movi,
-	0 r0 r1 stri,
+	r0 r1 set,
 
 	uart-lcrh imm,
 	112 r1 movi,
-	0 r0 r1 stri,
+	r0 r1 set,
 
 	uart-imsc imm,
-	127 30 irot 0 r1 movi,
-	2 0 r1 orri,
-	0 r0 r1 stri,
+	30 26 irot r1 movi,
+	114 r1 r1 orri,
+	r0 r1 set,
 
 	uart-cr imm,
-	3 24 irot 0 r1 movi,
+	3 24 irot r1 movi,
 	1 r1 r1 orri,
-	0 r0 r1 stri,
+	r0 r1 set,
 
 	r11 pc mov,
-)
 
 create uart-putc
 	lr r11 mov,
@@ -301,7 +300,7 @@ create uart-putc
 	here 2 ins - b, ne,
 )
 	uart-dr imm,
-	0 r0 r1 stri,
+	r0 r1 set,
 	r11 pc mov,
 
 create main
@@ -337,3 +336,4 @@ main reset-b
 as-end
 output @ close-file
 
+bye
