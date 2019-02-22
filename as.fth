@@ -109,7 +109,10 @@ E data-ins-r bic,
 F data-ins-r mvn,
 
 : mov, 0 swap mov, ;
+: tst, 0 tst, s, ;
+: teq, 0 teq, s, ;
 : cmp, 0 cmp, s, ;
+: cmn, 0 cmn, s, ;
 
 : data-ins-i12 FFF and or ;
 
@@ -141,7 +144,10 @@ F data-ins-i mvni,
 ( todo mul mla )
 
 : movi, 0 swap movi, ;
+: tsti, 0 tsti, s, ;
+: teqi, 0 teqi, s, ;
 : cmpi, 0 cmpi, s, ;
+: cmni, 0 cmni, s, ;
 
 
 decimal
