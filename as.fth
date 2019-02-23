@@ -4,27 +4,31 @@ s" out.bin" w/o create-file throw output !
 hex
 : cond-mask F and ;
 
+variable cond-invert
+: cond-invert? cond-invert @ 0 cond-invert ! ;
+
 decimal
 : cond create 4 lshift ,
-	does> @ here 1 - c@ cond-mask or here 1 - c! ;
+	does> @ cond-invert? xor here 1 - c@ cond-mask or here 1 - c! ;
 
 hex
-0 cond eq,
-1 cond ne,
-2 cond cs,
-2 cond hs,
-3 cond cc,
-3 cond lo,
-4 cond mi,
-5 cond pl,
-6 cond vs,
-7 cond vc,
-8 cond hi,
-9 cond ls,
-A cond ge,
-B cond lt,
-C cond gt,
-D cond le,
+( opposite condition is always the inverse of bit 0 )
+0 cond eq,	( equal z == 0 )
+1 cond ne,	( not equal z == 1 )
+2 cond cs,	( unsigned higher or same / carry set c == 1 )
+2 cond hs,	( unsigned higher or same / carry set c == 1 )
+3 cond cc,	( unsigned lower / carry clear c == 0 )
+3 cond lo,	( unsigned lower / carry clear c == 0 )
+4 cond mi,	( negative / minus n == 1 )
+5 cond pl,	( positive / plus n == 0 )
+6 cond vs,	( signed overflow / v set v == 1 )
+7 cond vc,	( no signed overflow / v clear v == 0 )
+8 cond hi,	( unsigned higher c == 1 and z == 0 )
+9 cond ls,	( unsigned lower or same c == 0 and z == 1 )
+A cond ge,	( signed greater than or equal n == v )
+B cond lt,	( signed less than n != v )
+C cond gt,	( signed greater than z == 0 and n == v )
+D cond le,	( signed less than or equal z == 1 and n != v )
 E cond al,
 ( F is reserved for unconditional instructions )
 
