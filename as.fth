@@ -212,6 +212,9 @@ variable _as-start
 : as-start here _as-start ! ;
 : as-end _as-start @ here over - output @ write-file throw ;
 
+: drop-char dup c@ c, 1 + ;
+: str, dup 0 = if 0 c, exit then 1 - >r drop-char r> recurse ;
+
 ( higher level branching constructs )
 : allot-to ( to ) here - allot ;
 : back-b-patch ( to patch )
@@ -335,6 +338,7 @@ create uart-putc
 	uart-dr imm,
 	r0 r1 st,
 	r11 pc mov,
+	s" test" str,
 
 create main
 	5 r0 r0 r1 0 15 mrc,
