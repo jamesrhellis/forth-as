@@ -212,13 +212,21 @@ variable _as-start
 : as-end _as-start @ here over - output @ write-file throw ;
 
 ( higher level branching constructs )
+: allot-to ( to ) here - allot ;
+: back-b-patch ( to patch )
+	here >r
+	allot-to
+	here 3 + c@ >r
+	b,
+	r> here 1 - c!
+	r> allot-to ;
 : loop: here ;
 : while; b, ;
 
 variable inter-vec
 : blank-vec dup 0 = if exit then 1 - here b, recurse ;
 : reserve-vec here inter-vec ! 8 blank-vec ;
-: reset-b inter-vec @ here - dup allot swap b, negate 1 ins - allot ;
+: reset-b inter-vec @ back-b-patch ;
 
 hex
 3f200000 constant gpio-base
