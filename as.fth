@@ -6,6 +6,7 @@ hex
 
 variable cond-invert
 : cond-invert? cond-invert @ 0 cond-invert ! ;
+: cond-invert 1 cond-invert ! ;
 
 decimal
 : cond create 4 lshift ,
@@ -220,8 +221,17 @@ variable _as-start
 	b,
 	r> here 1 - c!
 	r> allot-to ;
+
 : loop: here ;
 : while; b, ;
+
+: while: here ;
+: do: here here b, swap ;
+: end; b, here swap back-b-patch ;
+
+: if: here here b, cond-invert ;
+: else: here here b, here rot back-b-patch ;
+: then; here swap back-b-patch ;
 
 variable inter-vec
 : blank-vec dup 0 = if exit then 1 - here b, recurse ;
