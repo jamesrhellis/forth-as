@@ -213,7 +213,8 @@ variable _as-start
 : as-end _as-start @ here over - output @ write-file throw ;
 
 : drop-char dup c@ c, 1 + ;
-: str, dup 0 = if 0 c, exit then 1 - >r drop-char r> recurse ;
+: str, dup 0 = if 0 c, drop drop exit then 1 - >r drop-char r> recurse ;
+: adr _as-start @ - ( qemu hack fix ) 0x10000 + ; 
 
 ( higher level branching constructs )
 : allot-to ( to ) here - allot ;
@@ -338,7 +339,24 @@ create uart-putc
 	uart-dr imm,
 	r0 r1 st,
 	r11 pc mov,
-	s" test" str,
+
+create uart-puts
+	lr r10 mov,
+	r0 r3 mov,
+
+	1 byte up r3 r0 ldri,
+	loop:
+		uart-putc bl,
+		1 byte up r3 r0 ldri,
+		0 r0 cmpi,
+	while; ne,
+
+	10 r0 movi,
+	uart-putc bl,
+	r10 pc mov,
+
+create test-str
+	s" Hello World!" str,
 
 create main
 	5 r0 r0 r1 0 15 mrc,
@@ -348,12 +366,8 @@ create main
 
 	uart-init bl,
 
-	97 r0 movi,
-	uart-putc bl,
-	13 r0 movi,
-	uart-putc bl,
-	10 r0 movi,
-	uart-putc bl,
+	test-str adr imm,
+	uart-puts bl,
 
 	here b,
 
