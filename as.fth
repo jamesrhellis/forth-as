@@ -149,7 +149,6 @@ F data-ins-i mvni,
 : cmpi, 0 cmpi, s, ;
 : cmni, 0 cmni, s, ;
 
-
 decimal
 
 : ins  4 * ;
@@ -208,10 +207,14 @@ variable _as-start
 : as-start here _as-start ! ;
 : as-end _as-start @ here over - output @ write-file throw ;
 
+( higher level branching constructs )
+: loop: here ;
+: while; b, ;
+
 variable inter-vec
 : blank-vec dup 0 = if exit then 1 - here b, recurse ;
 : reserve-vec here inter-vec ! 8 blank-vec ;
-: reset-b here inter-vec @ swap - dup allot swap b, -1 ins swap - allot ;
+: reset-b inter-vec @ here - dup allot swap b, negate 1 ins - allot ;
 
 hex
 3f200000 constant gpio-base
@@ -258,14 +261,13 @@ create uart-init
 	delay bl,
 
 	gppudclk imm,
-	r0 r2 mov,
 	3 18 irot r1 movi,
 	r0 r1 set,
 
 	150 r0 movi,
 	delay bl,
 
-	r2 r0 mov,
+	gppudclk imm,
 	0 r1 movi,
 	r0 r1 set,
 
