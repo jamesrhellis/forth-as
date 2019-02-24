@@ -272,55 +272,79 @@ create delay
 create immidiate
 	4 up lr r0 ldri,
 	lr pc mov,
-: imm, immidiate bl, num, ;
+	4 up lr r1 ldri,
+	lr pc mov,
+	4 up lr r2 ldri,
+	lr pc mov,
+	4 up lr r3 ldri,
+	lr pc mov,
+	4 up lr r4 ldri,
+	lr pc mov,
+	4 up lr r5 ldri,
+	lr pc mov,
+	4 up lr r6 ldri,
+	lr pc mov,
+	4 up lr r7 ldri,
+	lr pc mov,
+	4 up lr r8 ldri,
+	lr pc mov,
+	4 up lr r9 ldri,
+	lr pc mov,
+	4 up lr r10 ldri,
+	lr pc mov,
+	4 up lr r11 ldri,
+	lr pc mov,
+	4 up lr r12 ldri,
+	lr pc mov,
+: imm, 3 lshift immidiate + bl, num, ;
 
 create uart-init
 	lr r11 mov,
-	uart-cr imm,
+	uart-cr r0 imm,
 	0 r1 movi,
 	r0 r1 st,
 
-	gppud imm,
+	gppud r0 imm,
 	r0 r1 st,
 
 	150 r0 movi,
 	delay bl,
 
-	gppudclk imm,
+	gppudclk r0 imm,
 	3 18 irot r1 movi,
 	r0 r1 st,
 
 	150 r0 movi,
 	delay bl,
 
-	gppudclk imm,
+	gppudclk r0 imm,
 	0 r1 movi,
 	r0 r1 st,
 
-	hex 7ff imm,
+	hex 7ff r0 imm,
 	decimal
 	r0 r1 mov,
-	uart-icr imm,
+	uart-icr r0 imm,
 	r0 r1 st,
 
-	uart-ibrd imm,
+	uart-ibrd r0 imm,
 	1 r1 movi,
 	r0 r1 st,
 
-	uart-fbrd imm,
+	uart-fbrd r0 imm,
 	40 r1 movi,
 	r0 r1 st,
 
-	uart-lcrh imm,
+	uart-lcrh r0 imm,
 	112 r1 movi,
 	r0 r1 st,
 
-	uart-imsc imm,
+	uart-imsc r0 imm,
 	30 26 irot r1 movi,
 	114 r1 r1 orri,
 	r0 r1 st,
 
-	uart-cr imm,
+	uart-cr r0 imm,
 	3 24 irot r1 movi,
 	1 r1 r1 orri,
 	r0 r1 st,
@@ -331,12 +355,12 @@ create uart-putc
 	lr r11 mov,
 	r0 r1 mov,
 
- 	uart-fr imm,
+ 	uart-fr r0 imm,
 	0 r0 r2 ldri,
 	32 r2 r2 andi, s,
 	here 2 ins - b, ne,
 
-	uart-dr imm,
+	uart-dr r0 imm,
 	r0 r1 st,
 	r11 pc mov,
 
@@ -366,7 +390,7 @@ create main
 
 	uart-init bl,
 
-	test-str adr imm,
+	test-str adr r0 imm,
 	uart-puts bl,
 
 	here b,
