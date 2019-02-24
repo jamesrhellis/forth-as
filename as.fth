@@ -209,12 +209,14 @@ decimal
 
 variable _as-start
 
+0x10000 constant kernel-base
+
 : as-start here _as-start ! ;
 : as-end _as-start @ here over - output @ write-file throw ;
 
 : drop-char dup c@ c, 1 + ;
 : str, dup 0 = if 0 c, drop drop exit then 1 - >r drop-char r> recurse ;
-: adr _as-start @ - ( qemu hack fix ) 0x10000 + ; 
+: adr _as-start @ - ( qemu hack fix ) kernel-base + ; 
 
 ( higher level branching constructs )
 : allot-to ( to ) here - allot ;
@@ -297,6 +299,19 @@ create immidiate
 	4 up lr r12 ldri,
 	lr pc mov,
 : imm, 3 lshift immidiate + bl, num, ;
+
+create build-interrupt-vec
+	lr r11 mov,
+	immidiate bl,
+	here kernel-base + b,
+
+	32 r1 movi,
+	loop:
+		4 r1 r0 stri,
+		0 r1 cmpi,
+	while; ne,
+
+	r11 pc mov,
 
 create uart-init
 	lr r11 mov,
@@ -387,6 +402,8 @@ create main
 	3 r1 r1 andi,
 	0 r1 cmpi,
 	here b, ne,
+
+	build-interrupt-vec bl,
 
 	uart-init bl,
 
