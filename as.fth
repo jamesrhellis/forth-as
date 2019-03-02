@@ -305,9 +305,9 @@ create build-interrupt-vec
 	immidiate bl,
 	here kernel-base + b,
 
-	32 r1 movi,
+	36 r1 movi,
 	loop:
-		4 r1 r0 stri,
+		4 pre wb r1 r0 stri,
 		0 r1 cmpi,
 	while; ne,
 
