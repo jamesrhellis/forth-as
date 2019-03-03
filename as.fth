@@ -181,9 +181,12 @@ decimal
 
 ( todo ldrh , strh )
 
-: ldstm-bits ;
+: ldstm-bits or ;
 : stm, 1 27 lshift swap data-ins-rn swap ldstm-bits ins, ;
-: ldm, 129 27 lshift swap data-ins-rn swap ldstm-bits ins, ;
+: ldm, 129 20 lshift swap data-ins-rn swap ldstm-bits ins, ;
+
+: push, pre wb sp stm, ;
+: pop, wb sp ldm, ;
 
 : swp, 1 24 lshift 9 4 lshift or swap data-ins-rd swap data-ins-rm swap data-ins-rn ins, ;
 
@@ -417,7 +420,7 @@ create main
 	test-str adr r0 imm,
 	uart-puts bl,
 
-	here b,
+	halt b,
 
 ( 
 r0 r0 r0 add, s
