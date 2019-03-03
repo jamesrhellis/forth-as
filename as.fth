@@ -307,6 +307,8 @@ create immidiate
 	lr pc mov,
 	4 up lr r12 ldri,
 	lr pc mov,
+	4 up lr sp ldri,
+	lr pc mov,
 : imm, 3 lshift immidiate + bl, num, ;
 
 create build-interrupt-vec
@@ -405,7 +407,6 @@ create uart-puthex
 	while; pl,
 
 	r10 pc mov,
-		
 
 create uart-puts
 	lr r10 mov,
@@ -444,6 +445,7 @@ create main
 
 	test-str adr r0 imm,
 	uart-puts bl,
+
 	0x4f3 r0 imm,
 	uart-puthex bl,
 
