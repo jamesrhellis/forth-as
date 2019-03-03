@@ -1,12 +1,11 @@
 variable output
 s" out.bin" w/o create-file throw output !
 
-hex
-: cond-mask F and ;
+: cond-mask 0xF and ;
 
 variable cond-invert
 : cond-invert? cond-invert @ 0 cond-invert ! ;
-: cond-invert 1 cond-invert ! ;
+: cond-invert 0x10 cond-invert ! ;
 
 decimal
 : cond create 4 lshift ,
@@ -389,6 +388,25 @@ create uart-putc
 	r0 r1 st,
 	r11 pc mov,
 
+create uart-puthex
+	lr r10 mov,
+	r0 r3 mov,
+
+	28 r4 movi,
+	15 r5 movi,
+	loop:
+		r3 r4 ror r5 r6 and,
+		10 r6 r7 subi, s,
+		char 0 r6 r0 addi, mi,
+		char a r7 r0 addi, pl,
+
+		uart-putc bl,
+		4 r4 r4 subi, s,
+	while; pl,
+
+	r10 pc mov,
+		
+
 create uart-puts
 	lr r10 mov,
 	r0 r3 mov,
@@ -420,12 +438,14 @@ create main
 
 	build-interrupt-vec bl,
 
-
+	kernel-base sp imm,
 
 	uart-init bl,
 
 	test-str adr r0 imm,
 	uart-puts bl,
+	0x4f3 r0 imm,
+	uart-puthex bl,
 
 	halt b,
 
