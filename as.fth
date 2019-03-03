@@ -207,6 +207,8 @@ decimal
 : mcr, 7 25 lshift 16 or swap cdp-no swap mrcr-cop swap cdp-rd swap cdp-rn swap cdp-rm swap cdp-in ins, ;
 : mrc, 7 25 lshift 1 20 lshift or 16 or swap cdp-no swap mrcr-cop swap cdp-rd swap cdp-rn swap cdp-rm swap cdp-in ins, ;
 
+: wfe, 0x320f002 ins, ;
+
 variable _as-start
 
 0x10000 constant kernel-base
@@ -397,11 +399,16 @@ create uart-puts
 create test-str
 	s" Hello World!" str,
 
+create halt
+	loop:
+		wfe,	
+	while; al,
+
 create main
 	5 r0 r0 r1 0 15 mrc,
 	3 r1 r1 andi,
 	0 r1 cmpi,
-	here b, ne,
+	halt b, ne,
 
 	build-interrupt-vec bl,
 
