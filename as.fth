@@ -212,18 +212,7 @@ decimal
 
 : wfe, 0x320f002 ins, ;
 
-variable _as-start
-
-0x10000 constant kernel-base
-
-: as-start here _as-start ! ;
-: as-end _as-start @ here over - output @ write-file throw ;
-
-: drop-char dup c@ c, 1 + ;
-: str, dup 0 = if 0 c, drop drop exit then 1 - >r drop-char r> recurse ;
-: adr _as-start @ - ( qemu hack fix ) kernel-base + ; 
-
-( higher level branching constructs )
+( Higher level branching constructs )
 : allot-to ( to ) here - allot ;
 : back-b-patch ( to patch )
 	here >r
@@ -244,10 +233,12 @@ variable _as-start
 : else: here here b, here rot back-b-patch ;
 : then; here swap back-b-patch ;
 
-variable inter-vec
-: blank-vec dup 0 = if exit then 1 - here b, recurse ;
-: reserve-vec here inter-vec ! 8 blank-vec ;
-: reset-b inter-vec @ back-b-patch ;
+: drop-char dup c@ c, 1 + ;
+: str, dup 0 = if 0 c, drop drop exit then 1 - >r drop-char r> recurse ;
+
+( OS / Device constants )
+
+0x10000 constant kernel-base
 
 hex
 3f200000 constant gpio-base
@@ -266,6 +257,20 @@ hex
 3f201044 constant uart-icr
 
 decimal
+
+( Assembler state words )
+variable _as-start
+: as-start here _as-start ! ;
+: as-end _as-start @ here over - output @ write-file throw ;
+
+( Device dependent assembler macros )
+: adr _as-start @ - kernel-base + ; 
+
+variable inter-vec
+: blank-vec dup 0 = if exit then 1 - here b, recurse ;
+: reserve-vec here inter-vec ! 8 blank-vec ;
+: reset-b inter-vec @ back-b-patch ;
+
 as-start
 ( instruction vector table )
 reserve-vec
@@ -414,6 +419,8 @@ create main
 	halt b, ne,
 
 	build-interrupt-vec bl,
+
+
 
 	uart-init bl,
 
