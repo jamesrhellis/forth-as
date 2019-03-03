@@ -429,17 +429,6 @@ create main
 
 	halt b,
 
-( 
-r0 r0 r0 add, s
-r1 r2 r3 orr,
-here 2 ins - b,
-r1 up pre wb r2 r3 ldr,
-1 r2 r3 r4 5 6 cdp,
-12 swi,
-1 r2 r3 r4 5 6 mrc,
-1 r2 r3 4 stc,
-r1 r2 r3 swp,
-)
 main reset-b
 as-end
 output @ close-file
