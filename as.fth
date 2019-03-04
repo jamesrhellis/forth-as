@@ -145,14 +145,11 @@ D data-ins-i movi,
 E data-ins-i bici,
 F data-ins-i mvni,
 
-( todo mul mla )
-
 : movi, 0 swap movi, ;
 : tsti, 0 tsti, s, ;
 : teqi, 0 teqi, s, ;
 : cmpi, 0 cmpi, s, ;
 : cmni, 0 cmni, s, ;
-
 decimal
 
 : ins  4 * ;
@@ -186,6 +183,30 @@ decimal
 
 : push, pre wb sp stm, ;
 : pop, wb sp ldm, ;
+
+
+( todo mul mla )
+
+( Control and dsp extension space )
+
+: clz, 0xb 21 lshift 1 4 lshift or 0xf 16 lshift or 0xf 8 lshift or swap data-ins-rd swap data-ins-rm ins, ;
+
+: cpsr 0 ;
+: spsr 1 22 lshift ;
+
+: msr-flags ( spsr or cpsr ) or ;
+: mrs, 1 24 lshift 0xf 16 lshift or swap data-ins-rd swap msr-flags ins, ; 
+
+: msr-flag create 1 swap lshift ,
+	does> @ or ;
+
+16 msr-flag c
+17 msr-flag x
+18 msr-flag s
+19 msr-flag f
+
+: msr, 9 21 lshift 0xf 12 lshift or swap msr-flags swap data-ins-rm or ins, ; 
+: msri, 25 21 lshift 0xf 12 lshift or swap msr-flags swap data-ins-i12 or ins, ; 
 
 : swp, 1 24 lshift 9 4 lshift or swap data-ins-rd swap data-ins-rm swap data-ins-rn ins, ;
 
