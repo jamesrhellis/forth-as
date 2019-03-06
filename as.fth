@@ -171,6 +171,7 @@ decimal
 : stri, 1 26 lshift swap data-ins-rd swap data-ins-rn swap data-ins-rm ins, ;
 : ldri, 65 20 lshift swap data-ins-rd swap data-ins-rn swap data-ins-rm ins, ;
 : st, 0 up -rot stri, ;
+: ld, 0 up -rot ldri, ;
 
 : str, 3 25 lshift swap data-ins-rd swap data-ins-rn swap data-ins-rm ins, ;
 : ldr, 97 20 lshift swap data-ins-rd swap data-ins-rn swap data-ins-rm ins, ;
@@ -254,7 +255,9 @@ decimal
 : then; here swap back-b-patch ;
 
 : drop-char dup c@ c, 1 + ;
-: str, dup 0 = if 0 c, drop drop exit then 1 - >r drop-char r> recurse ;
+: string, dup 0 = if 0 c, drop drop exit then 1 - >r drop-char r> recurse ;
+
+: zalloc dup 0 = if drop exit then 1 - 0 c, recurse ; 
 
 ( OS / Device constants )
 
@@ -300,6 +303,11 @@ create delay
 	1 r0 r0 subi, s,
 	delay b, ne,
 	lr pc mov,
+
+create halt
+	loop:
+		wfe,	
+	while; al,
 
 create immidiate
 	4 up lr r0 ldri,
@@ -444,13 +452,161 @@ create uart-puts
 	uart-putc bl,
 	r10 pc mov,
 
-create test-str
-	s" Hello World!" str,
+( memory allocator )
+( The allocator uses the tlsf algorithm for managaing allocations )
+( 
+	Checks for the end of ram are avoided by placing fake allocated blocks at the
+	start and end of ram:
+	A S A ; A - alloced S - start block / rest of ram
+	The 'free' blocks are not placed in the free block table - to avoid ever
+	allocating them.
 
-create halt
-	loop:
-		wfe,	
-	while; al,
+	Structure layout :
+	both
+	size cell includes bit flag allocated
+	previous-block cell
+	free only
+	next-free-block cell
+	prev-free-block cell
+)
+
+create tlsf-table
+( sizes from 16 bytes to 1 gb )
+( 8 divisions per size)
+28 8 * 4 * zalloc
+create fl-bitmap
+4 zalloc
+create sl-bitmap
+28 8 * zalloc
+
+create tlsf-free
+	( r0 - address to free )
+
+	( r1 current size of block to free )
+	( r2 other block )
+	( r3 size of other block )
+	0xf0 push,
+
+	( try to merge next )
+	r0 r1 ld,
+	r0 r1 r2 add,
+
+	r2 r3 ld,
+	1 r3 tsti,
+	if: ne,
+		( remove next from free list as size has changed )
+		8 pre up r2 r4 ldri,
+		12 pre up r2 r5 ldri,
+
+		0 r4 cmpi,
+		12 pre up r4 r5 stri, ne,
+
+		0 r5 cmpi,
+		8 pre up r5 r4 stri, ne,
+
+		( link next block )
+		r3 r2 r2 add,
+		4 pre up r2 r0 stri,
+		
+		( add sizes )
+		r3 r1 r1 add,
+		1 r1 r1 andi,
+	then;
+
+	( try to merge previous )
+	4 pre up r0 r2 ldri,
+
+	r2 r3 ld,
+	1 r3 tsti,
+	if: ne,
+		( remove previous from free list as size has changed )
+		8 pre up r2 r4 ldri,
+		12 pre up r2 r5 ldri,
+
+		0 r4 cmpi,
+		12 pre up r4 r5 stri, ne,
+
+		0 r5 cmpi,
+		8 pre up r5 r4 stri, ne,
+
+		( link next block )
+		r1 r0 r0 add,
+		4 pre up r0 r2 stri,
+
+		( add sizes )
+		r3 r1 r1 add,
+		1 r1 r1 andi,
+
+		r2 r0 mov,
+	then;
+
+	( return to free list )
+	( r2 fl index )
+	( r3 sl index )
+	( r4 combined index )
+	r1 r2 clz,
+	36 r2 r2 rsubi, s,
+	halt b, mi,
+
+	8 r2 r3 subi,
+	r1 r3 lsr r3 mov,
+	7 r3 r3 andi,
+
+	r2 3 ilsl r3 r4 add,
+	r4 r5 ld,
+
+	( link the new block )
+	16 pre up r0 r5 stri,
+	24 pre up r5 r0 stri,
+
+	( set the bitmap flags )
+	( r4 bit ) ( r5 address)
+	r2 1 ilsl r4 mov,
+	fl-bitmap adr r5 imm,
+	r5 r6 ld,
+	r3 r6 r3 and,
+	r5 r3 st,
+
+	r3 1 ilsl r4 mov,
+	sl-bitmap adr r5 imm,
+	r2 up pre byte r5 r6 ldr,
+	r3 r6 r3 and,
+	r2 up pre byte r5 r3 str,
+
+	0xf0 pop,
+	lr pc mov,
+
+create tlsf-init
+	( r0 address to start )
+	( r1 address to end )
+	0x40fc push,
+
+	( set up low end buffer )
+	8 r2 movi,
+	0 r3 movi,
+
+	0xc up wb r0 stm,
+
+	( set up high end buffer )
+	( 8 r2 movi, )
+	r0 r3 mov,
+
+	0xc pre wb r1 stm,
+
+	( set up initial block as alloced to allow for adding to table using free )
+	r0 r1 r2 sub,
+	8 r0 r3 subi,
+
+	0x3c up r0 stm,
+
+	( add to freelist table )
+	tlsf-free bl,
+
+	0x40fc pop,
+	lr pc mov,
+
+create test-str
+	s" Hello World!" string,
 
 create main
 	5 r0 r0 r1 0 15 mrc,
