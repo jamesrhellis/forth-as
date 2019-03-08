@@ -495,6 +495,8 @@ create tlsf-free
 	1 r3 tsti,
 	if: ne,
 		( remove next from free list as size has changed )
+		( r4 next block from r3 )
+		( r5 previous block from r3 )
 		8 pre up r2 r4 ldri,
 		12 pre up r2 r5 ldri,
 
@@ -553,27 +555,150 @@ create tlsf-free
 	7 r3 r3 andi,
 
 	r2 3 ilsl r3 r4 add,
-	r4 r5 ld,
+	tlfs-table adr r5 imm,
+	r4 pre up r5 r6 ldr,
 
 	( link the new block )
-	16 pre up r0 r5 stri,
-	24 pre up r5 r0 stri,
+	8 pre up r0 r6 stri,
+	12 pre up r6 r0 stri,
+
+	r4 pre up r5 r0 str,
 
 	( set the bitmap flags )
 	( r4 bit ) ( r5 address)
-	r2 1 ilsl r4 mov,
+	1 r4 movi,
+	r4 r2 lsl r4 mov,
 	fl-bitmap adr r5 imm,
 	r5 r6 ld,
-	r3 r6 r3 and,
+	r4 r6 r4 orr,
 	r5 r3 st,
 
-	r3 1 ilsl r4 mov,
+	1 r4 movi,
+	r4 r3 lsl r4 mov,
 	sl-bitmap adr r5 imm,
 	r2 up pre byte r5 r6 ldr,
-	r3 r6 r3 and,
+	r3 r6 r3 orr,
 	r2 up pre byte r5 r3 str,
 
 	0xf0 pop,
+	lr pc mov,
+
+create tlsf-alloc
+	( r0 size )
+	0xff0 push,
+
+	16 r0 r0 addi,
+
+	( r1 fl index )
+	( r2 sl index )
+	r0 r1 clz,
+	36 r1 r1 rsubi, s,
+	halt b, mi,
+
+	8 r1 r2 subi,
+	r0 r2 lsr r2 mov,
+	7 r2 r2 andi,
+
+	( r3 bit )
+	( r4 fl-bitmap address )
+	( r5 fl-bitmap )
+	( r9 resize test bit )
+	1 r3 movi,
+	r3 r1 lsl r3 mov,
+	fl-bitmap adr r4 imm,
+	r4 r5 ld,
+	r3 r5 tst,
+	( find smallest availible fl class )
+	if: ne,
+		1 r9 movi,
+		0 r2 movi,
+
+		loop:
+			1 r1 r1 addi,
+			r3 1 ilsl r3 mov,
+			2 6 irot r3 cmpi,
+			if: gt,
+				( fixme better error case handling)
+				halt b,
+			then;
+
+			r3 r5 tst,
+		while; ne,
+	then;
+
+	( r6 bit )
+	( r7 sl-bitmap address )
+	( r8 sl-bitmap )
+	1 r6 movi,
+	r6 r2 lsl r6 movi,
+	sl-bitmap adr r7 imm,
+	r1 up pre byte r7 r8 ldr,
+	r6 r8 tst,
+
+	( find smallest second level class )
+	1 r9 movi, ne,
+	while: ne,
+		1 r2 r2 addi,
+		r6 1 ilsl r6 mov,
+		8 r3 cmpi,
+		if: gt,
+			( fixme better error case handling)
+			halt b,
+		then;
+
+		r6 r8 tst,
+	end;
+
+	( r10 tlsf index address )
+	( r11 allocation block )
+	( r1 combined index )
+	tlsf-table adr 10 imm,
+	r1 3 ilsl r2 r1 add,
+	r1 up pre r10 r11 ldr,
+
+	( unlink the allocation block )
+	8 up pre r11 r12 ldri,
+	0 r12 cmp,
+	if: ne,
+		r1 up pre r10 r12 str,
+		( bits are not needed for blanking, so can be re-used )
+		0 r3 movi,
+		12 up pre r12 r3 stri,
+	else:
+		r6 r8 r8 xor,
+		r2 up pre byte r7 r8 str,
+		0 r8 cmp,
+		r3 r5 r5 xor, ne,
+		r4 r5 st, ne,
+	then;
+	( registers r1 - r8 are now free )
+
+	0 r9 cmpi, ( r9 is now free )
+	if: ne,
+		( create allocated block and free )
+		( r12 new block )
+		r0 r11 r12 add,
+		( r1 old -> new block size )
+		r11 r1 ld,
+		( set next physical block to have new block as previous )
+		r11 r1 r9 add,
+		4 up pre r9 r12,
+
+		( shorten old block )
+		r11 r0 str,
+		( set new block size )
+		r0 r1 r1 sub,
+		r12 r1 st,
+		4 up pre r12 r11 str,
+		( r0 - r4 clobbered )
+
+		r12 r0 mov,
+		tlsf-free bl,
+	then;
+
+	r11 r0 mov,
+
+	0xff0 pop,
 	lr pc mov,
 
 create tlsf-init
