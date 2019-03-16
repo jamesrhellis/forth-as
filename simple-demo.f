@@ -1,7 +1,7 @@
 variable output
 s" out.bin" w/o create-file throw output !
 
-include as.fth
+include as.f
 
 ( OS / Device constants )
 

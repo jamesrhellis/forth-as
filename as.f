@@ -110,6 +110,7 @@ E data-ins-r bic,
 F data-ins-r mvn,
 
 : mov, 0 swap mov, ;
+: mvn, 0 swap mvn, ;
 : tst, 0 tst, s, ;
 : teq, 0 teq, s, ;
 : cmp, 0 cmp, s, ;
@@ -143,6 +144,7 @@ E data-ins-i bici,
 F data-ins-i mvni,
 
 : movi, 0 swap movi, ;
+: mvni, 0 swap mvni, ;
 : tsti, 0 tsti, s, ;
 : teqi, 0 teqi, s, ;
 : cmpi, 0 cmpi, s, ;
@@ -180,8 +182,7 @@ decimal
 : ldm, 129 20 lshift swap data-ins-rn swap ldstm-bits ins, ;
 
 : push, pre wb sp stm, ;
-: pop, wb sp ldm, ;
-
+: pop, up wb sp ldm, ;
 
 ( todo mul mla )
 
