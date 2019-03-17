@@ -410,8 +410,6 @@ create add-word
 
 	( Init link items )
 	4 up pre r1 r0 stri,
-	0 r2 movi,
-	r1 r2 st,
 	
 	( Link new word )
 	last-link adr r3 imm,
@@ -435,6 +433,8 @@ create find-word
 		4 pre up r4 r1 ldri,
 		str-eq bl,
 		if: eq,
+		other-str adr r0 imm,
+		uart-puts bl,
 			8 r4 r0 addi,
 			0x8030 pop,
 		then;
@@ -527,7 +527,7 @@ create make-number
 create semi-colon s" ;" string,
 
 s" :" fword
-	0x4031 push,
+	0x4070 push,
 	next-word bl,
 
 	add-word bl,
@@ -537,13 +537,19 @@ s" :" fword
 	0xe92d4000 r1 imm,
 	4 up r4 r1 stri,
 
+	( Upadate alloc pointer to avoid overwriting )
+	alloc-pointer adr r5 imm,
+	r5 r4 st,
+
 	next-word bl,
+	r0 r6 mov,
 
 	loop:
 		find-word bl,
 
 		0 r0 cmpi,
 		if: eq,
+			r6 r0 mov,
 			make-number bl,
 
 			forth-imm adr r2 imm,
@@ -553,40 +559,44 @@ s" :" fword
 			r1 r2 r1 sub,
 			r1 2 ilsr r1 mov,
 			0xFF 8 irot r1 r1 bici,
-			0x13 0 irot r1 r1 andi,
+			0xeb 8 irot r1 r1 orri,
 			4 up r4 r1 stri,
 			4 up r4 r0 stri,
+			uart-puthex bl,
 		else:
 			( Construct a branch-link to the address )
 			8 r4 r1 addi,
 			r1 r0 r1 sub,
 			r1 2 ilsr r1 mov,
 			0xFF 8 irot r1 r1 bici,
-			0x13 0 irot r1 r1 andi,
+			0xeb 8 irot r1 r1 orri,
 			4 up r4 r1 stri,
 		then;
 
+		( Upadate alloc pointer to avoid overwriting )
+		r5 r4 st,
+
 		next-word bl,
 		semi-colon adr r1 imm,
-		r0 r5 mov,
+		r0 r6 mov,
 		str-eq bl,
 
-		r5 r0 mov,
+		r6 r0 mov,
 	while; ne,
 
 	( Complete with popping to pc )
-	0xe92d8000 r1 imm,
+	0xe8bd8000 r1 imm,
 	4 up r4 r1 stri,
 
-	alloc-pointer adr r5 imm,
+	( Upadate alloc pointer to avoid overwriting )
 	r5 r4 st,
 
-	0x8031 pop,
+	0x8070 pop,
 
 create interpret
 	( avoid using forth variables )
 	next-word bl,
-	r0 r12 mov,
+	r0 r5 mov,
 
 	loop:
 		find-word bl,
@@ -597,7 +607,7 @@ create interpret
 			r0 pc mov,
 		else:
 			4 up r11 r4 stri,
-			r12 r0 mov,
+			r5 r0 mov,
 			make-number bl,
 
 			r0 r4 mov,
