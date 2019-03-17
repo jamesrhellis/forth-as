@@ -215,8 +215,6 @@ create uart-puts
 
 create test-str
 	s" Hello World!" string,
-create other-str
-	s" More World!" string,
 
 ( Forth interpreter construction macros )
 ( link format inline-str next str code )
@@ -259,6 +257,12 @@ s" drop" fword
 
 s" dup" fword
 	4 up r11 r4 stri,
+	lr pc mov,
+
+s" over" fword
+	4 pre wb r11 r12 ldri,
+	4 up r11 r4 stri,
+	r12 r4 mov,
 	lr pc mov,
 
 s" !" fword
@@ -381,7 +385,7 @@ s" print-hex" fword
 	0x8000 pop,
 
 create forth-imm
-	4 up r12 r4 stri,
+	4 up r11 r4 stri,
 	4 up lr r4 ldri,
 	lr pc mov,
 
@@ -433,8 +437,6 @@ create find-word
 		4 pre up r4 r1 ldri,
 		str-eq bl,
 		if: eq,
-		other-str adr r0 imm,
-		uart-puts bl,
 			8 r4 r0 addi,
 			0x8030 pop,
 		then;
@@ -562,7 +564,6 @@ s" :" fword
 			0xeb 8 irot r1 r1 orri,
 			4 up r4 r1 stri,
 			4 up r4 r0 stri,
-			uart-puthex bl,
 		else:
 			( Construct a branch-link to the address )
 			8 r4 r1 addi,
