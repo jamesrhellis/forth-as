@@ -458,8 +458,12 @@ create is-space
 	32 r0 cmpi,
 	lr pc mov, eq,
 
-	( newline )
+	( newline - lf )
 	10 r0 cmpi,
+	lr pc mov, eq,
+
+	( newline - cr)
+	13 r0 cmpi,
 	lr pc mov, eq,
 
 	( tab )
