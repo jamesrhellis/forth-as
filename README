@@ -1,0 +1,11 @@
+Forth-as : forth assembler for ARM assembly
+
+This is a simple forth assembler for ARM assembly, assembling to
+a useful RISC subset of the fixed-width AArch32 encoding.
+
+Included is a demo forth for an emulated raspberry pi 2 b, 
+using the '-serial stdio' for IO.
+
+The demo can be run using:
+gforth forth-demo.f
+qemu-system-arm -m 256 -M raspi2 -serial stdio -kernel out.bin
